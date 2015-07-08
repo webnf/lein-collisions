@@ -1,5 +1,6 @@
 (ns leiningen.collisions
-  (:require [clojure.string :as str]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [leiningen.core.classpath :refer
              [get-classpath]]
             [webnf.base.platform :refer
@@ -26,8 +27,7 @@
     (if-let [files (seq
                     (find-ambigous-resources
                      (remove in-exclusions?
-                             (classpath-resources
-                              (get-classpath project)))))]
+                             (classpath-resources (get-classpath project)))))]
       (do
         (println "File collisions:")
         (doseq [[fname fs] files

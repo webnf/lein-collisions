@@ -1,4 +1,4 @@
-(defproject lein-collisions "0.1.1"
+(defproject lein-collisions "0.1.2-SNAPSHOT"
   :description "A leiningen plugin to find classpath collisions"
   :url "http://github.com/webnf/lein-collisions"
   :license {:name "Eclipse Public License"
@@ -6,4 +6,4 @@
   :eval-in-leiningen true
 
   :dependencies
-  [[webnf/base "0.1.17"]])
+  [[webnf/base "0.1.18"]])
