@@ -16,7 +16,7 @@
   ;; (println "Checking classpath" (mapv pr-str (get-classpath project)))
   (let [exclusions* (reduce #(assoc-in %1 %2 ::exclude)
                             {} (read-string (get opts ":exclusions"
-                                                 "#{[\"META-INF\"] [\"project.clj\"] [\"README\"] [\"README.md\"] [\"AUTHORS\"] [\"LICENCE\"]}")))
+                                                 "#{[\"META-INF\"] [\"project.clj\"] [\"README\"] [\"README.md\"] [\"AUTHORS\"] [\"LICENSE\"]}")))
         in-exclusions? (fn ie?
                          ([path] (ie? exclusions* path))
                          ([exc [p & path]]
