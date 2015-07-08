@@ -12,12 +12,12 @@
 (defn collisions
   "Check for file collisions on the project's class path
      :exclusions a set of paths to exclude
-         default '#{[\"META-INF\"] [\"project.clj\"] [\"README\"] [\"README.md\"] [\"AUTHORS\"] [\"LICENSE\"]}'"
+         default '#{[\"META-INF\"] [\"project.clj\"] [\"README\"] [\"README.md\"] [\"AUTHORS\"] [\"LICENSE\"] [\"deps.cljs\"]}'"
   [project & {:as opts}]
   ;; (println "Checking classpath" (mapv pr-str (get-classpath project)))
   (let [exclusions* (reduce #(assoc-in %1 %2 ::exclude)
                             {} (read-string (get opts ":exclusions"
-                                                 "#{[\"META-INF\"] [\"project.clj\"] [\"README\"] [\"README.md\"] [\"AUTHORS\"] [\"LICENSE\"]}")))
+                                                 "#{[\"META-INF\"] [\"project.clj\"] [\"README\"] [\"README.md\"] [\"AUTHORS\"] [\"LICENSE\"] [\"deps.cljs\"]}")))
         in-exclusions? (fn ie?
                          ([path] (ie? exclusions* path))
                          ([exc [p & path]]
