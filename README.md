@@ -6,7 +6,7 @@ Classpath conflicts are bad, because there is no good way to define the classpat
 
 ## Usage
 
-Put `[lein-collisions "0.1.2"]` into the `:plugins` vector of the `:user` profile in your `~/.lein/profiles.clj`:
+Put the dependency into the `:plugins` vector of the `:user` profile in your `~/.lein/profiles.clj`: [![Clojars Project](http://clojars.org/lein-collisions/latest-version.svg)](http://clojars.org/lein-collisions)
 
 Example output for a project with collisions in `rhino` and `jsr305`
 
