@@ -1,13 +1,89 @@
 (ns leiningen.collisions
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [leiningen.core.classpath :refer
-             [get-classpath]]
-            [webnf.base.platform :refer
-             [find-ambigous-resources classpath-resources]]))
+            [leiningen.core.classpath :refer [get-classpath]]))
+
+(set! *warn-on-reflection* true)
+
+;; Inlined from webnf.base.platform
+;; slim down
+
+(defn ze-name ^String [^java.util.zip.ZipEntry ze]
+  (.getName ze))
+
+(defn split-path [path]
+  (loop [acc () ^java.io.File path (io/file path)]
+    (if path
+      (recur (cons (.getName path) acc)
+             (.getParentFile path))
+      (vec acc))))
 
 (defn render-path [p]
   (str/join "/" p))
+
+(defn dir-entries
+  ([dir] (dir-entries dir (constantly true)))
+  ([dir want-file?]
+   (forcat [e (.listFiles (io/file dir))]
+           (cond (.isDirectory e) (dir-entries e want-file?)
+                 (want-file? e)   [e]))))
+
+(defn zip-entries
+  ([zip] (zip-entries zip (constantly true)))
+  ([zip want-entry?]
+   (with-open [zf (java.util.zip.ZipFile. (io/file zip))]
+     (into [] (remove #_(do (println (ze-name %) "=>" (.endsWith (ze-name %) "/")))
+                      #(.endsWith (ze-name %) "/")
+                      (enumeration-seq
+                       (.entries zf)))))))
+
+(defn relativize [base path]
+  (let [base (when base (.getCanonicalFile (io/file base)))
+        path (io/file path)]
+    (loop [acc ()
+           ^java.io.File path' path]
+      (when-not path'
+        (throw (ex-info (str "Resource dir not contained in project root"
+                             {:base base :path path})
+                        {:base base :path path})))
+      (if (= base path')
+        (vec acc)
+        (recur (cons (.getName path') acc)
+               (.getParentFile path'))))))
+
+(defn system-classpath-roots []
+  (str/split (System/getProperty "java.class.path") #":"))
+
+(defn classpath-resources
+  ([] (classpath-resources (system-classpath-roots)))
+  ([roots] (if (string? roots)
+             (recur (str/split roots #":"))
+             (forcat [r roots
+                      :let [f (.getCanonicalFile (io/file r))
+                            ze-meta {:classpath-entry f}]]
+                     (cond
+                       (.isDirectory f) (for [de (dir-entries f)]
+                                          (with-meta (relativize f de)
+                                            ze-meta))
+                       (.isFile f)      (for [ze (zip-entries f)]
+                                          (with-meta (split-path (str ze))
+                                            ze-meta)))))))
+
+(defn find-ambigous-resources
+  ([] (find-ambigous-resources (classpath-resources)))
+  ([pathes]
+   (loop [[p0 & [p1 :as pn]] (sort pathes)
+          duplicate-files {}]
+     (let [cpe0 (:classpath-entry (meta p0))
+           cpe1 (:classpath-entry (meta p1))]
+       (cond
+         (empty? pn) duplicate-files
+         (and (= p0 p1)
+              (not= cpe0 cpe1))
+         (recur pn (update-in duplicate-files [p0] (fnil into #{}) [cpe0 cpe1]))
+         :else (recur pn duplicate-files))))))
+
+;; plugin
 
 (defn collisions
   "Check for file collisions on the project's class path
