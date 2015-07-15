@@ -8,6 +8,11 @@
 ;; Inlined from webnf.base.platform
 ;; slim down
 
+(defmacro forcat
+  "Concat the return value of a for expression"
+  [bindings body]
+  `(apply concat (for ~bindings ~body)))
+
 (defn ze-name ^String [^java.util.zip.ZipEntry ze]
   (.getName ze))
 
@@ -25,7 +30,7 @@
   ([dir] (dir-entries dir (constantly true)))
   ([dir want-file?]
    (forcat [e (.listFiles (io/file dir))]
-           (cond (.isDirectory e) (dir-entries e want-file?)
+           (cond (.isDirectory ^java.io.File e) (dir-entries e want-file?)
                  (want-file? e)   [e]))))
 
 (defn zip-entries
